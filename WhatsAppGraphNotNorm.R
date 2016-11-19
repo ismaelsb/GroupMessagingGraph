@@ -3,7 +3,7 @@ library('igraph');
 library('expm');
 library('MASS');
 
-#Extracción de los nombres de cada línea de la conversación:
+#Extracci?n de los nombres de cada l?nea de la conversaci?n:
 WhatsApp <- readLines("WhatsApp.txt") #encoding = "UCS-2LE"
 #edit(WhatsApp)
 wlines <-WhatsApp
@@ -45,6 +45,9 @@ colnames(Mraw) <- NULL
 Mraw
 data.frame(names, Mraw)
 
+
+#analysis:
+
 Sym=M+t(M) #symmetric matrix for in+out replies
 Sym
 ###invert replies to get some kind of 'distance'
@@ -77,7 +80,7 @@ rk <- n
 L_dec=svd(Lsym,rk,rk)
 data.frame(names, L_dec$u)
 
-######
+######error
 Lsym
 L_dec$u %*% (L_dec$d[1:rk]*diag(rk)) %*% t(L_dec$v)
 error <- matrix(0,1,n)
@@ -88,12 +91,13 @@ for (i in 1:n){
 error
 plot(1:n, error/sum((Lsym^2))) #decreasing sequence of errors by rank of svd
 #error plot shows I must use every eigenvector but the last
+#######
 
 #rk <- 12 #with 12 eigenvectors we get all the information
 #automatize rk with a formula!!!!!
 rk <- n-1 ##check this!!!
-rk <- n-2
-rk <- 8
+#rk <- n-2
+#rk <- 8
 #rk <- 3
 L_dec=svd(Lsym,rk,rk)
 data.frame(names, L_dec$u)
@@ -105,10 +109,10 @@ L_dec$u
 #plot(data.frame(Unorm))
 #text(data.frame(Unorm),row.names(Unorm), pos=4, cex=0.6, col="red")
 plot(data.frame(L_dec$u))
-text(data.frame(L_dec$u),row.names(Unorm), pos=4, cex=0.6, col="red")
+text(data.frame(L_dec$u),row.names(L_dec$u), pos=4, cex=0.6, col="red")
 pair=c(1,2)
-plot(data.frame(Unorm[,pair]))
-text(data.frame(Unorm[,pair]),row.names(Unorm[,pair]), pos=4, cex=0.6, col="red")
+plot(data.frame(L_dec$u[,pair]))
+text(data.frame(L_dec$u[,pair]),row.names(L_dec$u[,pair]), pos=4, cex=0.6, col="red")
 pair=c(1,3)
 plot(data.frame(Unorm[,pair]))
 text(data.frame(Unorm[,pair]),row.names(Unorm[,pair]), pos=4, cex=0.6, col="red")

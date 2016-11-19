@@ -3,17 +3,18 @@ library('igraph');
 library('expm');
 library('MASS');
 
-#Extracción de los nombres de cada línea de la conversación:
-WhatsApp <- readLines("WhatsApp.txt") #encoding = "UCS-2LE"
+#Extracci?n de los nombres de cada l?nea de la conversaci?n:
+WhatsApp <- readLines("WhatsApp.txt", encoding = "UTF-8") #encoding = "UCS-2LE"
 #edit(WhatsApp)
 wlines <-WhatsApp
 for (i in 1:length(WhatsApp)){
-wlines[i] <- gsub("[0-9]+ (.*) [0-9]{2}:[0-9]{2} - ","", WhatsApp[i])
+#wlines[i] <- gsub("[0-9]+ (.*) [0-9]{2}:[0-9]{2} - ","", WhatsApp[i])
 wlines[i] <- gsub(": (.*)","", wlines[i])
+wlines[i] <- gsub("(.*) - ","", wlines[i])
 }
 #edit(wlines)
 table <- as.data.frame(table(wlines))
-names <- table$wlines[table$Freq>length(WhatsApp)/100 & table$wlines!=""]
+names <- table$wlines[table$Freq>length(WhatsApp)/200 & table$wlines!=""]
 #names
 sellines <- wlines != wlines #initialize to FALSE
 #sellines
@@ -23,6 +24,8 @@ for (i in 1:length(names)){
 #sum(sellines)
 nlines <- wlines[sellines]
 as.data.frame(table(nlines))
+
+
 #Graph
 n <- length(names)
 M <- matrix(0,n,n)
@@ -33,17 +36,35 @@ colnames(M) <- names
 ## reply rank - can be modified
 r <- floor((n-1+0.5)/3) #round((n-1)/3) !! 0.5 -> 1
 #r <- 1
+#r <- 3 
 
 for (i in 1:length(nlines)-r){
   for (j in 1:r){
   M[nlines[i],nlines[i+j]]=M[nlines[i],nlines[i+j]]+1 #could be +1/r or so
   }
 }
+
+###### because of vector size
+for (i in 1:(length(nlines)-r)/2){
+  for (j in 1:r){
+    M[nlines[i],nlines[i+j]]=M[nlines[i],nlines[i+j]]+1 #could be +1/r or so
+  }
+}
+imid=i+1
+for (i in imid:length(nlines)-r){
+  for (j in 1:r){
+    M[nlines[i],nlines[i+j]]=M[nlines[i],nlines[i+j]]+1 #could be +1/r or so
+  }
+}
+######
 Mraw <- M
 rownames(Mraw) <- NULL
 colnames(Mraw) <- NULL
 Mraw
 data.frame(names, Mraw)
+
+
+#analysis:
 
 Sym=M+t(M) #symmetric matrix for in+out replies
 Sym
@@ -141,7 +162,7 @@ tUnorm <- t(Unorm)
 rownames(tUnorm) <-names
 hc.complete=hclust(dist(Unorm),method="complete")
 plot(hc.complete)
-h#hc.single=hclust(dist(Unorm),method="single")
+#hc.single=hclust(dist(Unorm),method="single")
 #plot(hc.single)
 #hc.average=hclust(dist(Unorm),method="average")
 #plot(hc.average)
