@@ -78,10 +78,21 @@ for (i in 1:(length(collapselines)-r+1)){
   }
 }
 
+###### for people who was added later or left earlier the group:
+
+#which.min(B[,j]==F) #first bucket in which j is not in
+#dim(B)[1]-which.min(rev(B[,j])==F)+2 #last bucket in which j is in
+
+for (j in 1:length(names)){
+  B[1:which.min(B[,j]==F),j] <- rep(NA,length(B[1:which.min(B[,j]==F),j]))
+  B[(dim(B)[1]-(which.min(rev(B[,j]==F))-1)):dim(B)[1],j]<-rep(NA,length(B[(dim(B)[1]-(which.min(rev(B[,j]==F))-1)):dim(B)[1],j]))
+}
+
+
 
 ### affinity (correlation) clusters
 
-CorrB <- cor(B)
+CorrB <- cor(B, use="pairwise.complete.obs")
 
 #rownames(CorrB) <- names
 #colnames(CorrB) <- names
@@ -97,7 +108,7 @@ ngroups <- 4
 Mgroups <- cutree(hc, k=ngroups)
 
 
-distCorr <- dist(cor(B))
+distCorr <- dist(CorrB)
 hc <- hclust(distCorr)
 plot(hc, labels=names, cex=0.7)
 Mgroups <- cutree(hc, k=ngroups)
@@ -167,7 +178,7 @@ kmSammon$cluster
 text(SammonCoords$points,labels=names, pos=4, cex=0.6, col=kmSammon$cluster)
 
 
-SammonCoordsCorr <- sammon(dist(cor(B)))
+SammonCoordsCorr <- sammon(dist(CorrB))
 plot(SammonCoordsCorr$points)
 #color tree clusters
 text(SammonCoordsCorr$points,labels=names, pos=4, cex=0.6, col=Mgroups)
@@ -187,14 +198,18 @@ plot(hc,cex=.7, labels=names) #dendogram for simultaneity in conversation
 
 ####Sammon Mapping with a distance based on correlations
 
+CorrB <- cor(B, use="pairwise.complete.obs")
+
 #Corrdist <- (1-cor(B))/2
-Corrdist <- tan(pi/2*(1-cor(B))/2) # maps cor 1 to dist 0 and cor -1 to +inf
+Corrdist <- tan(pi/2*(1-CorrB)/2) # maps cor 1 to dist 0 and cor -1 to +inf
 
 SammonCoordsCorrD <- sammon(Corrdist)
 
 hc <- hclust(as.dist(Corrdist), method="complete")
 plot(hc,cex=.7, labels=names) #dendogram for simultaneity in conversation
 
+diag(Corrdist) <- NA
+heatmap(Corrdist, col=colorpalette, labRow=names, labCol=names)
 
 plot(SammonCoordsCorrD$points, col="gray",
      xlab="", ylab="", bty="n", ann=F, xaxt='n',yaxt='n',
@@ -216,6 +231,7 @@ MgroupsCorr <- cutree(hc, k=ngroups)
 text(SammonCoordsCorrD$points,labels=names, pos=1, cex=0.6, col=MgroupsCorr)
 
 #plot the strongest edges
+Corrdist <- tan(pi/2*(1-CorrB)/2)
 
 for (i in 1:length(names)){
   for (j in i:length(names)){
@@ -228,3 +244,4 @@ for (i in 1:length(names)){
 }
 
 
+#heatmap(B*1, col=colorpalette, labRow=names, labCol=names, distfun=function (x) dist(x, method="binary"))
